@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jogos de Bet: Aviãozinho, Tigrinho, Moeda, Dados, Roleta e Minas</title>
+<style>
+:root{--bg:#0e1320;--card:#141a2e;--accent:#4ad66d;--danger:#ff5a5f;--text:#e8ecf1;--muted:#aab3c0;--line:#243056;}
+*{box-sizing:border-box}
+html{height:100%; overflow-y: scroll; scrollbar-gutter: stable both-edges}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto; background:var(--bg);color:var(--text); min-height:100%; -webkit-overflow-scrolling: touch}
+/* Scrollbar cross-OS styling */
+*::-webkit-scrollbar{ width: 12px }
+*::-webkit-scrollbar-thumb{ background: #243056; border-radius: 8px }
+*::-webkit-scrollbar-track{ background: #0f1426 }
+*{ scrollbar-width: thin }
+.header{padding:16px;border-bottom:1px solid #1e2640;display:flex;justify-content:space-between;align-items:center}
+.brand{font-weight:600} .saldo{font-weight:600}
+.container{max-width:1100px;margin:24px auto;padding:0 16px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:10px 14px;border-radius:8px;background:#1a2138;color:#cfd7e8;cursor:pointer;border:1px solid #253053}
+.tab.active{background:var(--accent);color:#09120f;border-color:#2d6e4a}
+.card{background:var(--card);border:1px solid #1f2947;border-radius:12px;padding:16px;margin-bottom:16px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+input[type=number]{width:120px;padding:10px;border-radius:8px;border:1px solid var(--line);background:#0f1426;color:var(--text)}
+select{padding:10px;border-radius:8px;border:1px solid var(--line);background:#0f1426;color:var(--text)}
+button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer}
+.btn{background:#243056;color:#cfd7e8} .btn-primary{background:var(--accent);color:#0c1a14}
+.btn-danger{background:var(--danger);color:#fff} .btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-ghost{background:#1a2138;color:#cfd7e8;border:1px solid var(--line)}
+/* Destaque permanente para botões de Dobrar Aposta */
+.btn-double{animation:doubleGlow 1.6s ease-in-out infinite;box-shadow:0 0 0 rgba(74,214,109,0.0)}
+@keyframes doubleGlow{0%{box-shadow:0 0 0 rgba(74,214,109,0.0)}50%{box-shadow:0 0 14px rgba(74,214,109,0.8)}100%{box-shadow:0 0 0 rgba(74,214,109,0.0)}}
+.kpi{display:flex;gap:16px;margin:10px 0}
+.kpi .box{flex:1;background:#0f1426;border:1px solid var(--line);border-radius:10px;padding:12px}
+.kpi .value{font-size:24px;font-weight:700}
+.status{margin-top:8px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.cell{height:66px;display:flex;align-items:center;justify-content:center;background:#0f1426;border:1px solid var(--line);border-radius:10px;font-size:28px}
+.win{animation:pulse .5s ease-in-out 2}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.paytable{font-size:14px;color:#9fb1c6}
+.footer{font-size:12px;color:#8fa1b5;margin-top:16px}
+/* Aviãozinho visual */
+.avi-area{background:#0f1426;border:1px solid var(--line);border-radius:10px;height:240px;position:relative;margin-top:8px}
+.avi-area canvas{width:100%;height:100%;display:block}
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;max-width:360px;width:92%}
+.modal .box h3{margin:0 0 8px 0} .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.modal .box.boom{animation:boom .6s ease}
+@keyframes boom{0%{transform:scale(1)}50%{transform:scale(1.06);box-shadow:0 0 18px rgba(255,90,95,.7)}100%{transform:scale(1)}}
+/* Coin flip */
+  .coin{width:90px;height:90px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:32px;background:#0f1426;margin:8px 0}
+  .flip{animation:flip 1s ease-in-out} @keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(180deg)}100%{transform:rotateY(360deg)}}
+  .switch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-left:8px}
+  .switch .seg{background:#1a2138;color:#cfd7e8;padding:8px 12px;border:none;cursor:pointer}
+  .switch .seg.active{background:var(--accent);color:#0c1a14}
+  /* Roleta */
+  .rou-area{display:flex;justify-content:center;align-items:center;margin:8px 0}
+  .rou-area canvas{background:#0f1426;border:1px solid var(--line);border-radius:50%}
+  /* Plinko */
+  .plinko-area{display:flex;justify-content:center;align-items:center;margin:8px 0}
+  .plinko-area canvas{background:#0f1426;border:1px solid var(--line);border-radius:10px}
+  /* Minas */
+.mines-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:12px 0}
+.mine-cell{height:56px;display:flex;align-items:center;justify-content:center;background:#0f1426;border:1px solid var(--line);border-radius:8px;font-size:22px;cursor:pointer}
+.mine-cell.revealed{background:#12243b;border-color:#2d6e4a}
+.mine-cell.bomb{background:#361a1f;border-color:#6e2d2d}
+
+  /* Blackjack - cartas e mesa */
+  .bj-table{background:#0f1426;border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0}
+  .bj-row{display:flex;align-items:flex-start;gap:12px;margin:8px 0}
+  .bj-row .label{width:70px;color:#9fb1c6}
+  .bj-hand{display:flex;gap:8px;flex-wrap:wrap;min-height:100px}
+  .bj-card{width:56px;height:78px;border-radius:8px;background:#fff;color:#111;border:1px solid #cfd7e8;box-shadow:0 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;position:relative}
+  .bj-card .corner{position:absolute;top:6px;left:6px;font-weight:700;font-size:13px}
+  .bj-card .corner.bottom{top:auto;left:auto;bottom:6px;right:6px;transform:rotate(180deg)}
+  .bj-card .suit{font-size:22px}
+  .bj-card.red{color:#c62828}
+  .bj-card.black{color:#111}
+  .bj-card.back{background:linear-gradient(135deg,#1a2138,#243056);border-color:#243056;color:#cfd7e8}
+  .bj-card.deal{animation:deal .25s ease-out}
+  @keyframes deal{0%{transform:translateY(-6px) scale(.95);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+  .bj-total{font-size:14px;color:#9fb1c6}
+  /* Tower - visual */
+  #game-tower .grid{margin-top:12px}
+  #game-tower .tower-cell{height:72px;border-radius:12px;background:#101632;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.25);transition:border-color .2s, box-shadow .2s, transform .15s}
+  #game-tower .tower-cell.active{border-color:#2d6e4a;box-shadow:0 0 10px rgba(74,214,109,.25)}
+  #game-tower .tower-cell.win{background:#13283f;border-color:#2d6e4a}
+  #game-tower .tower-cell.bomb{background:#361a1f;border-color:#6e2d2d}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="brand">Jogos de Bet</div>
+  <div class="saldo">Saldo: R$ <span id="saldo">0,00</span></div>
+</div>
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" data-game="aviaozinho">Aviãozinho</div>
+    <div class="tab" data-game="tigrinho">Tigrinho</div>
+    <div class="tab" data-game="moeda">Moeda</div>
+    <div class="tab" data-game="dados">Dados</div>
+    <div class="tab" data-game="roleta">Roleta</div>
+    <div class="tab" data-game="minas">Minas</div>
+    <div class="tab" data-game="blackjack">Blackjack</div>
+    <div class="tab" data-game="bacara">Bacará</div>
+    <div class="tab" data-game="plinko">Plinko</div>
+    <div class="tab" data-game="tower">Tower</div>
+  </div>
+
+  <div id="game-aviaozinho" class="card">
+    <h2>Aviãozinho (Crash)</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaAvi" type="number" min="1" step="1" value="10"></label>
+      <button id="aviMin" class="btn-ghost">Mín</button>
+      <button id="aviMax" class="btn-ghost">Máx</button>
+      <button id="aviDouble" class="btn-ghost">x2</button>
+      <button id="startAvi" class="btn-primary">Iniciar</button>
+      <button id="cashAvi" class="btn-danger" disabled>Sacar</button>
+    </div>
+    <div class="kpi">
+      <div class="box"><div class="label">Multiplicador</div><div id="multAvi" class="value">1.00x</div></div>
+      <div class="box"><div class="label">Rodada</div><div id="roundAvi" class="value">Pronta</div></div>
+    </div>
+    <div class="avi-area"><canvas id="aviCanvas"></canvas></div>
+    <div id="statusAvi" class="status">Clique em Iniciar e tente sacar antes do crash.</div>
+    <div id="lastAvi" class="status"></div>
+  </div>
+
+  <div id="game-tigrinho" class="card" style="display:none">
+    <h2>Tigrinho (Slots 3x3)</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaSlot" type="number" min="1" step="1" value="5"></label>
+      <button id="slotMin" class="btn-ghost">Mín</button>
+      <button id="slotMax" class="btn-ghost">Máx</button>
+      <button id="slotDouble" class="btn-ghost">x2</button>
+      <button id="spinSlot" class="btn-primary">Girar</button>
+    </div>
+    <div id="gridSlot" class="grid">
+      <div class="cell">🐯</div><div class="cell">⭐</div><div class="cell">🍌</div>
+      <div class="cell">🐾</div><div class="cell">🌴</div><div class="cell">⭐</div>
+      <div class="cell">🍌</div><div class="cell">🐯</div><div class="cell">🐾</div>
+    </div>
+    <div class="paytable">Pagamentos: 🐯 10x • ⭐ 5x • 🍌 3x • 🐾 2x • 🌴 1.5x — Linhas: 3 horizontais + 2 diagonais.</div>
+    <div id="lastSlot" class="status"></div>
+    <div id="slotModal" class="modal">
+      <div class="box">
+        <h3 id="slotModalTitle">Parabéns 🎉</h3>
+        <div id="slotModalMsg" class="status">Você ganhou R$ 0,00.</div>
+        <div id="slotModalCombo" style="display:none; font-size:28px; line-height:1.2; margin:8px 0;"></div>
+        <div class="actions">
+          <button id="slotModalDouble" class="btn-primary btn-double">Dobrar Aposta</button>
+          <button id="slotModalSame" class="btn-ghost">Tentar novamente</button>
+          <button id="slotModalClose" class="btn">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-moeda" class="card" style="display:none">
+    <h2>Moeda (Cara ou Coroa)</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaCoin" type="number" min="1" step="1" value="5"></label>
+      <button id="coinMin" class="btn-ghost">Mín</button>
+      <button id="coinMax" class="btn-ghost">Máx</button>
+      <button id="coinDouble" class="btn-ghost">x2</button>
+      <label style="margin-left:8px;">Escolha:</label>
+      <div id="coinSwitch" class="switch">
+        <button class="seg active" data-val="cara">Cara</button>
+        <button class="seg" data-val="coroa">Coroa</button>
+      </div>
+      <button id="flipCoin" class="btn-primary">Lançar</button>
+    </div>
+    <div class="coin" id="coinView">🪙</div>
+    <div id="coinLast" class="status"></div>
+    <div id="coinModal" class="modal">
+      <div class="box">
+        <h3 id="coinModalTitle">Que pena! 😕</h3>
+        <div id="coinModalMsg" class="status">Você perdeu. Quer dobrar a aposta e tentar novamente?</div>
+        <div class="actions">
+          <button id="coinModalDouble" class="btn-primary btn-double">Dobrar Aposta</button>
+          <button id="coinModalTry" class="btn-ghost">Tentar novamente</button>
+          <button id="coinModalClose" class="btn">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div id="game-dados" class="card" style="display:none">
+    <h2>Dados (Alto/Baixo)</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaDice" type="number" min="1" step="1" value="5"></label>
+      <button id="diceMin" class="btn-ghost">Mín</button>
+      <button id="diceMax" class="btn-ghost">Máx</button>
+      <button id="diceDouble" class="btn-ghost">x2</button>
+      <label style="margin-left:8px;">Escolha:
+        <select id="diceChoice"><option value="alto">Alto (4–6)</option><option value="baixo">Baixo (1–3)</option></select>
+      </label>
+      <button id="rollDice" class="btn-primary">Rolar</button>
+    </div>
+    <div id="diceView" class="status" style="font-size:28px;">🎲 —</div>
+    <div id="diceLast" class="status"></div>
+  </div>
+
+  <div id="game-roleta" class="card" style="display:none">
+    <h2>Roleta (Cor)</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaRou" type="number" min="1" step="1" value="10"></label>
+      <button id="rouMin" class="btn-ghost">Mín</button>
+      <button id="rouMax" class="btn-ghost">Máx</button>
+      <button id="rouDouble" class="btn-ghost">x2</button>
+      <label style="margin-left:8px;">Cor:
+        <select id="rouChoice"><option value="vermelho">Vermelho</option><option value="preto">Preto</option><option value="verde">Verde (0)</option></select>
+      </label>
+      <button id="spinRou" class="btn-primary">Girar</button>
+    </div>
+    <div class="rou-area"><canvas id="rouCanvas" width="260" height="260"></canvas></div>
+    <div id="rouView" class="status" style="font-size:24px;">🎡 —</div>
+    <div id="rouLast" class="status"></div>
+    <div id="rouModal" class="modal">
+      <div class="box">
+        <h3 id="rouModalTitle">Resultado</h3>
+        <div id="rouModalMsg" class="status">—</div>
+        <div class="actions">
+          <button id="rouModalDouble" class="btn-primary btn-double">Dobrar Aposta</button>
+          <button id="rouModalTry" class="btn-ghost">Tentar novamente</button>
+          <button id="rouModalClose" class="btn">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-minas" class="card" style="display:none">
+    <h2>Minas (5x5)</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaMines" type="number" min="1" step="1" value="10"></label>
+      <button id="minesMin" class="btn-ghost">Mín</button>
+      <button id="minesMax" class="btn-ghost">Máx</button>
+      <button id="minesDouble" class="btn-ghost">x2</button>
+      <label style="margin-left:8px;">Minas: <input id="minesCount" type="number" min="1" max="10" value="5" style="width:80px"></label>
+      <button id="startMines" class="btn-primary">Iniciar</button>
+      <button id="cashMines" class="btn-danger" disabled>Coletar</button>
+    </div>
+    <div class="kpi">
+      <div class="box"><div class="label">Multiplicador</div><div id="minesMult" class="value">1.00x</div></div>
+      <div class="box"><div class="label">Estado</div><div id="minesRound" class="value">Pronto</div></div>
+    </div>
+    <div id="minesGrid" class="mines-grid"></div>
+    <div id="minesStatus" class="status">Clique em Iniciar, revele células seguras e colete antes de achar uma mina.</div>
+     <div id="minesLast" class="status"></div>
+     <div id="minesModal" class="modal">
+       <div class="box">
+         <h3>Explodiu! 💥</h3>
+         <div id="minesModalMsg" class="status">Poxa! Você pisou numa mina e perdeu. Não desista, tente novamente!</div>
+         <div class="actions">
+           <button id="minesModalDouble" class="btn-primary btn-double">Dobrar Aposta</button>
+           <button id="minesTry" class="btn-ghost">Tentar novamente</button>
+           <button id="minesClose" class="btn">Fechar</button>
+         </div>
+       </div>
+     </div>
+   </div>
+
+  <div id="game-blackjack" class="card" style="display:none">
+    <h2>Blackjack (21)</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaBj" type="number" min="1" step="1" value="10"></label>
+      <button id="bjMin" class="btn-ghost">Mín</button>
+      <button id="bjMax" class="btn-ghost">Máx</button>
+      <button id="bjDouble" class="btn-ghost">x2</button>
+      <button id="bjStart" class="btn-primary">Iniciar</button>
+      <button id="bjHit" class="btn" disabled>Hit</button>
+      <button id="bjStand" class="btn" disabled>Stand</button>
+    </div>
+    <div class="bj-table">
+      <div class="bj-row">
+        <div class="label">Dealer</div>
+        <div id="bjDealerCards" class="bj-hand"></div>
+      </div>
+      <div class="bj-row">
+        <div class="label">Você</div>
+        <div id="bjPlayerCards" class="bj-hand"></div>
+      </div>
+    </div>
+    <div id="bjPlayer" class="status">Você: —</div>
+    <div id="bjDealer" class="status">Dealer: —</div>
+    <div id="bjStatus" class="status"></div>
+    <div id="bjLast" class="status"></div>
+  </div>
+
+  <div id="game-bacara" class="card" style="display:none">
+    <h2>Bacará</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaBac" type="number" min="1" step="1" value="10"></label>
+      <button id="bacMin" class="btn-ghost">Mín</button>
+      <button id="bacMax" class="btn-ghost">Máx</button>
+      <button id="bacDouble" class="btn-ghost">x2</button>
+      <label style="margin-left:8px;">Aposta:
+        <select id="bacChoice"><option value="player">Player</option><option value="banker">Banker</option><option value="tie">Tie</option></select>
+      </label>
+      <button id="bacDeal" class="btn-primary">Distribuir</button>
+    </div>
+    <div class="bj-table">
+      <div class="bj-row">
+        <div class="label">Player</div>
+        <div id="bacPlayerCards" class="bj-hand"></div>
+      </div>
+      <div class="bj-row">
+        <div class="label">Banker</div>
+        <div id="bacBankerCards" class="bj-hand"></div>
+      </div>
+    </div>
+    <div id="bacView" class="status">Totais aparecerão aqui.</div>
+    <div id="bacLast" class="status"></div>
+  </div>
+
+  <div id="game-plinko" class="card" style="display:none">
+    <h2>Plinko</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaPlinko" type="number" min="1" step="1" value="5"></label>
+      <button id="plinkoMin" class="btn-ghost">Mín</button>
+      <button id="plinkoMax" class="btn-ghost">Máx</button>
+      <button id="plinkoDouble" class="btn-ghost">x2</button>
+      <button id="dropPlinko" class="btn-primary">Soltar</button>
+    </div>
+    <div class="plinko-area"><canvas id="plinkoCanvas" width="300" height="300"></canvas></div>
+    <div id="plinkoLast" class="status"></div>
+  </div>
+
+  <div id="game-tower" class="card" style="display:none">
+    <h2>Tower</h2>
+    <div class="controls">
+      <label>Aposta (R$): <input id="apostaTower" type="number" min="1" step="1" value="5"></label>
+      <button id="towerMin" class="btn-ghost">Mín</button>
+      <button id="towerMax" class="btn-ghost">Máx</button>
+      <button id="towerDouble" class="btn-ghost">x2</button>
+      <button id="startTower" class="btn-primary">Iniciar</button>
+      <button id="cashTower" class="btn-danger" disabled>Coletar</button>
+    </div>
+    <div id="towerGrid" class="grid" style="grid-template-columns:repeat(3,1fr)"></div>
+    <div id="towerStatus" class="status">Escolha células seguras para subir de nível.</div>
+    <div id="towerLast" class="status"></div>
+  </div>
+
+  <div class="footer">Simulação educativa. Não utiliza dinheiro real.</div>
+</div>
+
+<script>
+const saldoEl = document.getElementById('saldo'); let saldo = 1000; updateSaldo();
+function updateSaldo(){saldoEl.textContent = (saldo).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+// Tabs
+function showGame(id){ document.querySelectorAll('.card').forEach(c=>c.style.display='none'); const el=document.getElementById('game-'+id); if(el) el.style.display='block'; }
+document.querySelectorAll('.tab').forEach(t=>{ t.addEventListener('click',()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); showGame(t.dataset.game); }); });
+
+// Util bet buttons
+function setMin(inp){ inp.value = 1; }
+function setMax(inp){ inp.value = Math.max(1, Math.floor(saldo)); }
+function setDouble(inp){ const cur = Math.max(1, Math.floor(Number(inp.value)||1)); inp.value = Math.min(Math.floor(saldo), cur*2); }
+function attachBetControls(minBtn, maxBtn, doubleBtn, input){ minBtn.addEventListener('click',()=>setMin(input)); maxBtn.addEventListener('click',()=>setMax(input)); doubleBtn.addEventListener('click',()=>setDouble(input)); }
+
+// Aviãozinho
+const apostaAvi = document.getElementById('apostaAvi');
+const startAvi = document.getElementById('startAvi');
+const cashAvi = document.getElementById('cashAvi');
+const multAvi = document.getElementById('multAvi');
+const roundAvi = document.getElementById('roundAvi');
+const statusAvi = document.getElementById('statusAvi');
+const lastAvi = document.getElementById('lastAvi');
+attachBetControls(document.getElementById('aviMin'),document.getElementById('aviMax'),document.getElementById('aviDouble'),apostaAvi);
+
+let aviRunning=false, aviTimer=null, currMult=1, crashed=false, crashTarget=2, aviBet=0;
+function sampleCrash(){ const u=Math.random(); const scale=1.6; const val = 1 + Math.log(1/(1-u))*scale; return Math.min(val, 25); }
+function resetAviUI(){ currMult=1; crashed=false; multAvi.textContent=currMult.toFixed(2)+'x'; roundAvi.textContent=aviRunning?'Rodando':'Pronta'; renderAvi(); }
+// Canvas desenho
+const aviCanvas = document.getElementById('aviCanvas'); const aviCtx = aviCanvas.getContext('2d');
+function resizeAvi(){ aviCanvas.width = aviCanvas.clientWidth; aviCanvas.height = 240; renderAvi(); }
+window.addEventListener('resize', resizeAvi); resizeAvi();
+function renderAvi(){ if(!aviCtx) return; aviCtx.clearRect(0,0,aviCanvas.width,aviCanvas.height); aviCtx.strokeStyle = '#1f2947'; aviCtx.lineWidth = 1; aviCtx.strokeRect(6,6,aviCanvas.width-12,aviCanvas.height-12);
+  const maxVis=15; const t = Math.min(currMult, maxVis)-1; const x = 40 + (t/maxVis)*(aviCanvas.width-80); const y = aviCanvas.height - 40 - (t/maxVis)*(aviCanvas.height-100);
+  aviCtx.beginPath(); aviCtx.moveTo(40, aviCanvas.height-40); aviCtx.lineTo(x, y); aviCtx.strokeStyle = '#2f6faa'; aviCtx.lineWidth=2; aviCtx.stroke();
+  aviCtx.beginPath(); aviCtx.moveTo(x, y); aviCtx.lineTo(x-16, y+6); aviCtx.lineTo(x-16, y-6); aviCtx.closePath(); aviCtx.fillStyle = crashed ? '#ff7b7f' : '#9fd3c7'; aviCtx.fill();
+  if(!crashed){
+    const text = currMult.toFixed(2)+'x';
+    aviCtx.font = '14px Segoe UI, system-ui, sans-serif';
+    aviCtx.textBaseline = 'middle';
+    const padX=8, h=24; const w = aviCtx.measureText(text).width + padX*2;
+    let lx = x + 14, ly = y - h/2;
+    if(lx + w > aviCanvas.width - 8) lx = x - w - 14; if(lx < 8) lx = 8;
+    if(ly < 8) ly = 8; if(ly + h > aviCanvas.height - 8) ly = aviCanvas.height - 8 - h;
+    const r = 8;
+    aviCtx.beginPath();
+    aviCtx.moveTo(lx+r, ly);
+    aviCtx.lineTo(lx+w-r, ly);
+    aviCtx.quadraticCurveTo(lx+w, ly, lx+w, ly+r);
+    aviCtx.lineTo(lx+w, ly+h-r);
+    aviCtx.quadraticCurveTo(lx+w, ly+h, lx+w-r, ly+h);
+    aviCtx.lineTo(lx+r, ly+h);
+    aviCtx.quadraticCurveTo(lx, ly+h, lx, ly+h-r);
+    aviCtx.lineTo(lx, ly+r);
+    aviCtx.quadraticCurveTo(lx, ly, lx+r, ly);
+    aviCtx.closePath();
+    aviCtx.fillStyle = '#0f1426'; aviCtx.strokeStyle = '#243056'; aviCtx.lineWidth = 1; aviCtx.fill(); aviCtx.stroke();
+    aviCtx.fillStyle = '#e8ecf1'; aviCtx.fillText(text, lx+padX, ly + h/2);
+  }
+  if(crashed){ aviCtx.beginPath(); aviCtx.arc(x-8,y,12,0,Math.PI*2); aviCtx.fillStyle='rgba(255,90,95,.6)'; aviCtx.fill(); }
+}
+startAvi.addEventListener('click',()=>{
+  aviBet = Math.max(1, Math.floor(Number(apostaAvi.value)||0)); if(aviRunning) return; if(aviBet>saldo){statusAvi.textContent='Saldo insuficiente.'; return;}
+  saldo -= aviBet; updateSaldo(); crashTarget = sampleCrash(); aviRunning=true; resetAviUI(); startAvi.disabled=true; cashAvi.disabled=false; statusAvi.textContent='🚀 O avião está voando! Saque antes do crash 💥';
+  const growth=0.05; // aceleração
+  aviTimer = setInterval(()=>{ if(crashed){return;} currMult = currMult*(1+growth); multAvi.textContent = currMult.toFixed(2)+'x'; renderAvi(); if(currMult>=crashTarget){ crashed=true; aviRunning=false; clearInterval(aviTimer); roundAvi.textContent='Crash!'; startAvi.disabled=false; cashAvi.disabled=true; statusAvi.textContent='💥 Crascou em '+crashTarget.toFixed(2)+'x. Você perdeu R$ '+aviBet.toFixed(2)+'. Coragem — tente novamente!'; lastAvi.textContent='Último crash: '+crashTarget.toFixed(2)+'x'; renderAvi(); } },60);
+});
+cashAvi.addEventListener('click',()=>{ if(!aviRunning || crashed) return; aviRunning=false; clearInterval(aviTimer); const ganho = +(aviBet*currMult).toFixed(2); saldo += ganho; updateSaldo(); roundAvi.textContent='Sacou'; startAvi.disabled=false; cashAvi.disabled=true; statusAvi.textContent='🎉 Sacado em '+currMult.toFixed(2)+'x. Uau! Você ganhou R$ '+ganho.toFixed(2)+' 🚀'; lastAvi.textContent='Sacado: '+currMult.toFixed(2)+'x'; renderAvi(); });
+
+// Tigrinho
+const gridSlot = document.getElementById('gridSlot'); const apostaSlot = document.getElementById('apostaSlot'); const spinSlot = document.getElementById('spinSlot'); const lastSlot = document.getElementById('lastSlot');
+attachBetControls(document.getElementById('slotMin'),document.getElementById('slotMax'),document.getElementById('slotDouble'),apostaSlot);
+const slotModal = document.getElementById('slotModal'); const slotModalTitle = document.getElementById('slotModalTitle'); const slotModalMsg = document.getElementById('slotModalMsg'); const slotModalCombo = document.getElementById('slotModalCombo'); const slotModalDouble = document.getElementById('slotModalDouble'); const slotModalSame = document.getElementById('slotModalSame'); const slotModalClose = document.getElementById('slotModalClose');
+const symbols=[ {s:'🐯',w:1,p:10}, {s:'⭐',w:2,p:5}, {s:'🍌',w:3,p:3}, {s:'🐾',w:4,p:2}, {s:'🌴',w:5,p:1.5} ];
+const totalW = symbols.reduce((a,b)=>a+b.w,0);
+function pick(){ let r=Math.random()*totalW; for(const o of symbols){ if((r-=o.w)<=0) return o; } return symbols[0]; }
+function cellElems(){ return Array.from(gridSlot.querySelectorAll('.cell')); }
+function evaluate(lines, bet){ let total=0, hits=[]; for(const L of lines){ const a=L[0],b=L[1],c=L[2]; if(a.s===b.s && b.s===c.s){ total += bet*a.p; hits.push(a.s); } } return {total,hits}; }
+function showSlotResult(win, amount, hits){
+  slotModalTitle.textContent = win ? 'Parabéns 🎉' : 'Tente novamente';
+  slotModalMsg.textContent = win ? ('Você ganhou R$ '+amount.toFixed(2)+' com '+(hits.length?hits.join(', '):'combinações')+'.') : 'Sem combinação nesta rodada.';
+  if(slotModalCombo){
+    if(win && hits.length){
+      slotModalCombo.innerHTML = hits.map(s=>`<div>${s} ${s} ${s}</div>`).join('');
+      slotModalCombo.style.display = 'block';
+    } else {
+      slotModalCombo.style.display = 'none';
+      slotModalCombo.innerHTML='';
+    }
+  }
+  slotModal.style.display='flex';
+}
+slotModalDouble.addEventListener('click',()=>{ setDouble(apostaSlot); slotModal.style.display='none'; }); slotModalSame.addEventListener('click',()=>{ slotModal.style.display='none'; }); slotModalClose.addEventListener('click',()=>{ slotModal.style.display='none'; });
+spinSlot.addEventListener('click',()=>{ let bet = Math.max(1, Math.floor(Number(apostaSlot.value)||0)); if(bet>saldo){lastSlot.textContent='Saldo insuficiente.'; return;} saldo -= bet; updateSaldo(); const cells = cellElems(); spinSlot.disabled=true; lastSlot.textContent='Girando...'; let ticks=0; const anim=setInterval(()=>{ cells.forEach(c=>c.textContent=pick().s); ticks++; if(ticks>10){ clearInterval(anim); const board = Array.from({length:9},()=>pick()); board.forEach((o,i)=>{cells[i].textContent=o.s; cells[i].classList.remove('win');}); const lines=[ [board[0],board[1],board[2]],[board[3],board[4],board[5]],[board[6],board[7],board[8]],[board[0],board[4],board[8]],[board[2],board[4],board[6]] ]; const res=evaluate(lines, bet); if(res.total>0){ saldo += +res.total.toFixed(2); updateSaldo(); lastSlot.textContent='Você ganhou R$ '+res.total.toFixed(2)+' com '+res.hits.join(', '); lines.forEach((L,idx)=>{ if(L[0].s===L[1].s && L[1].s===L[2].s){ const map=[[0,1,2],[3,4,5],[6,7,8],[0,4,8],[2,4,6]][idx]; map.forEach(i=>cells[i].classList.add('win')); } }); showSlotResult(true, res.total, res.hits); } else { lastSlot.textContent='Sem combinação. Tente novamente!'; showSlotResult(false, 0, []); } spinSlot.disabled=false; } },80); });
+
+// Moeda
+const apostaCoin = document.getElementById('apostaCoin'); const coinMin = document.getElementById('coinMin'); const coinMax = document.getElementById('coinMax'); const coinDouble = document.getElementById('coinDouble'); const flipCoin = document.getElementById('flipCoin'); const coinView = document.getElementById('coinView'); const coinLast = document.getElementById('coinLast'); const coinSwitch = document.getElementById('coinSwitch'); const coinModal = document.getElementById('coinModal'); const coinModalTitle = document.getElementById('coinModalTitle'); const coinModalMsg = document.getElementById('coinModalMsg'); const coinModalDouble = document.getElementById('coinModalDouble'); const coinModalClose = document.getElementById('coinModalClose'); let coinChoiceVal = 'cara'; attachBetControls(coinMin,coinMax,coinDouble,apostaCoin);
+coinSwitch.querySelectorAll('.seg').forEach(btn=>{ btn.addEventListener('click',()=>{ coinChoiceVal = btn.dataset.val; coinSwitch.querySelectorAll('.seg').forEach(b=>b.classList.toggle('active', b===btn)); }); });
+if(coinModalDouble){ coinModalDouble.addEventListener('click',()=>{ setDouble(apostaCoin); if(coinModal) coinModal.style.display='none'; }); }
+if(coinModalClose){ coinModalClose.addEventListener('click',()=>{ if(coinModal) coinModal.style.display='none'; }); }
+flipCoin.addEventListener('click',()=>{ let bet = Math.max(1, Math.floor(Number(apostaCoin.value)||0)); if(bet>saldo){coinLast.textContent='Saldo insuficiente.'; return;} saldo -= bet; updateSaldo(); coinView.classList.add('flip'); setTimeout(()=>{ coinView.classList.remove('flip'); const side = Math.random()<0.5?'cara':'coroa'; coinView.textContent = side==='cara'?'🙂':'🦊'; const win = (side===coinChoiceVal); if(win){ const ganho = bet*2; saldo += ganho; updateSaldo(); coinLast.textContent='Deu '+side+'! 🎉 Você ganhou R$ '+ganho.toFixed(2)+'!'; } else { coinLast.textContent='Deu '+side+'... 😕 Você perdeu R$ '+bet.toFixed(2)+'. Tente novamente!'; if(coinModal){ coinModalTitle.textContent='Que pena! 😕'; coinModalMsg.textContent='Você perdeu R$ '+bet.toFixed(2)+'. Quer dobrar a aposta e tentar novamente?'; coinModal.style.display='flex'; } } }, 1000); });
+
+// Dados
+const apostaDice = document.getElementById('apostaDice'); const diceMin = document.getElementById('diceMin'); const diceMax = document.getElementById('diceMax'); const diceDouble = document.getElementById('diceDouble'); const diceChoice = document.getElementById('diceChoice'); const rollDice = document.getElementById('rollDice'); const diceView = document.getElementById('diceView'); const diceLast = document.getElementById('diceLast'); attachBetControls(diceMin,diceMax,diceDouble,apostaDice);
+rollDice.addEventListener('click',()=>{ let bet = Math.max(1, Math.floor(Number(apostaDice.value)||0)); if(bet>saldo){diceLast.textContent='Saldo insuficiente.'; return;} saldo -= bet; updateSaldo(); diceView.textContent='🎲 Rolando...'; setTimeout(()=>{ const v = Math.floor(Math.random()*6)+1; diceView.textContent='🎲 '+v; const escolha = diceChoice.value; const win = (escolha==='alto' ? v>=4 : v<=3); if(win){ const ganho = bet*2; saldo += ganho; updateSaldo(); diceLast.textContent='🎉 Vitória! Você ganhou R$ '+ganho.toFixed(2)+' — '+(escolha==='alto'?'Alto':'Baixo')+'.'; } else { diceLast.textContent='Não foi dessa vez... Perdeu R$ '+bet.toFixed(2)+' — '+(escolha==='alto'?'Alto':'Baixo')+'.'; } }, 800); });
+
+// Roleta
+const apostaRou = document.getElementById('apostaRou'); const rouMin = document.getElementById('rouMin'); const rouMax = document.getElementById('rouMax'); const rouDouble = document.getElementById('rouDouble'); const rouChoice = document.getElementById('rouChoice'); const spinRou = document.getElementById('spinRou'); const rouView = document.getElementById('rouView'); const rouLast = document.getElementById('rouLast'); const rouModal = document.getElementById('rouModal'); const rouModalTitle = document.getElementById('rouModalTitle'); const rouModalMsg = document.getElementById('rouModalMsg'); const rouModalDouble = document.getElementById('rouModalDouble'); const rouModalTry = document.getElementById('rouModalTry'); const rouModalClose = document.getElementById('rouModalClose'); attachBetControls(rouMin,rouMax,rouDouble,apostaRou);
+const rouCanvas = document.getElementById('rouCanvas'); const rouCtx = rouCanvas ? rouCanvas.getContext('2d') : null;
+const wheelOrder = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const redSet = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+function colorOf(n){ if(n===0) return 'verde'; return redSet.has(n)?'vermelho':'preto'; }
+let rouAngle=0, rouSpinning=false, rouAnim=null; function sizeRou(){ if(!rouCanvas) return; const s=260; rouCanvas.width=s; rouCanvas.height=s; drawWheel(rouAngle); } sizeRou();
+function drawWheel(angle){ if(!rouCtx) return; const ctx=rouCtx; const W=rouCanvas.width, H=rouCanvas.height; const cx=W/2, cy=H/2; const R=Math.min(W,H)/2-8; ctx.clearRect(0,0,W,H); const seg=Math.PI*2/wheelOrder.length; for(let i=0;i<wheelOrder.length;i++){ const n=wheelOrder[i]; const start=i*seg+angle; const end=start+seg; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,start,end); ctx.closePath(); const col=colorOf(n); ctx.fillStyle = col==='vermelho'?'#a83232':col==='preto'?'#1e1e1e':'#2d6e4a'; ctx.fill(); }
+ ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.lineWidth=2; ctx.strokeStyle='#243056'; ctx.stroke(); ctx.beginPath(); ctx.moveTo(cx, cy-(R+2)); ctx.lineTo(cx-10, cy-(R+18)); ctx.lineTo(cx+10, cy-(R+18)); ctx.closePath(); ctx.fillStyle='#ffcc00'; ctx.fill(); }
+function spinRoulette(){ if(rouSpinning) return; let bet = Math.max(1, Math.floor(Number(apostaRou.value)||0)); if(bet>saldo){rouLast.textContent='Saldo insuficiente.'; return;} saldo -= bet; updateSaldo(); spinRou.disabled=true; rouView.textContent='🎡 Girando...'; const finalNumber = Math.floor(Math.random()*37); const targetIndex = wheelOrder.indexOf(finalNumber); const TWO=Math.PI*2; const seg=TWO/wheelOrder.length; const desiredBase = - (targetIndex*seg + seg/2) - Math.PI/2; let startAngle = rouAngle; function forwardDelta(cur,target){ let d=(target-cur)%TWO; if(d<0) d+=TWO; return d; } const extra = 4*TWO; const endAngle = startAngle + forwardDelta(startAngle, desiredBase) + extra; const startTime = performance.now(); const duration = 3200; rouSpinning=true; function easeOutCubic(t){ return 1 - Math.pow(1-t,3); }
+ function step(now){ const t = Math.min(1, (now - startTime)/duration); const eased = easeOutCubic(t); const angle = startAngle + (endAngle - startAngle)*eased; drawWheel(angle % TWO); if(t<1){ rouAnim = requestAnimationFrame(step); } else { rouSpinning=false; rouAngle = (endAngle % TWO); drawWheel(rouAngle); const n=finalNumber; const cor=colorOf(n); rouView.textContent = '🎡 '+n+' ('+cor+')'; let ganho=0; const escolha=rouChoice.value; if(escolha==='verde'){ if(n===0){ ganho = bet*14; } } else { if(cor===escolha){ ganho = bet*2; } } if(ganho>0){ saldo += ganho; updateSaldo(); rouLast.textContent='🎉 Vitória! Você ganhou R$ '+ganho.toFixed(2)+' na cor '+escolha+'.'; } else { rouLast.textContent='Saiu '+n+' ('+cor+'). Você perdeu R$ '+bet.toFixed(2)+'.'; }
+ if(rouModal){ rouModalTitle.textContent = ganho>0 ? 'Parabéns!' : 'Tente novamente'; rouModalMsg.textContent = ganho>0 ? ('Saiu '+n+' ('+cor+'). Você ganhou R$ '+ganho.toFixed(2)+'.') : ('Saiu '+n+' ('+cor+'). Você perdeu R$ '+bet.toFixed(2)+'.'); rouModal.style.display='flex'; }
+ spinRou.disabled=false; }
+ }
+ rouAnim = requestAnimationFrame(step); }
+spinRou.addEventListener('click', spinRoulette);
+if(rouModalDouble){ rouModalDouble.addEventListener('click',()=>{ setDouble(apostaRou); if(rouModal) rouModal.style.display='none'; }); }
+if(rouModalTry){ rouModalTry.addEventListener('click',()=>{ if(rouModal) rouModal.style.display='none'; }); }
+if(rouModalClose){ rouModalClose.addEventListener('click',()=>{ if(rouModal) rouModal.style.display='none'; }); }
+
+// Minas
+const minesGrid = document.getElementById('minesGrid'); const apostaMines = document.getElementById('apostaMines'); const minesMin = document.getElementById('minesMin'); const minesMax = document.getElementById('minesMax'); const minesDouble = document.getElementById('minesDouble'); const minesCount = document.getElementById('minesCount'); const startMines = document.getElementById('startMines'); const cashMines = document.getElementById('cashMines'); const minesMultEl = document.getElementById('minesMult'); const minesRound = document.getElementById('minesRound'); const minesStatus = document.getElementById('minesStatus'); const minesLast = document.getElementById('minesLast'); const minesModal = document.getElementById('minesModal'); const minesModalMsg = document.getElementById('minesModalMsg'); const minesTry = document.getElementById('minesTry'); const minesClose = document.getElementById('minesClose'); const minesDoubleBtn = document.getElementById('minesModalDouble'); attachBetControls(minesMin,minesMax,minesDouble,apostaMines);
+let minesRunning=false, minesBet=0, minesMult=1, bombs=[], revealed=new Set();
+function renderEmptyGrid(){ minesGrid.innerHTML=''; for(let i=0;i<25;i++){ const d=document.createElement('div'); d.className='mine-cell'; d.dataset.idx=i; d.textContent=''; d.addEventListener('click', onMineClick); minesGrid.appendChild(d); } }
+function placeBombs(count){ bombs = []; const pool=[...Array(25).keys()]; for(let i=0;i<count;i++){ const k = Math.floor(Math.random()*pool.length); bombs.push(pool.splice(k,1)[0]); } }
+function onMineClick(e){ if(!minesRunning) return; const i = Number(e.currentTarget.dataset.idx); const cell = e.currentTarget; if(revealed.has(i)) return; if(bombs.includes(i)){ cell.classList.add('bomb'); cell.textContent='💣'; endMines(false); } else { cell.classList.add('revealed'); cell.textContent='⭐'; revealed.add(i); minesMult = +(minesMult*1.2).toFixed(2); minesMultEl.textContent=minesMult.toFixed(2)+'x'; minesStatus.textContent='Seguro! Multiplicador '+minesMult.toFixed(2)+'x. Revele mais ou colete.'; }
+}
+function endMines(win){ minesRunning=false; startMines.disabled=false; cashMines.disabled=true; minesRound.textContent=win?'Coletou':'Explodiu'; if(!win){ minesStatus.textContent='💥 Explodiu! Você perdeu R$ '+minesBet.toFixed(2)+'. Coragem — tente novamente!'; minesLast.textContent='Rodada: '+new Date().toLocaleTimeString(); if(minesModal){ const box = minesModal.querySelector('.box'); minesModalMsg.textContent = 'Poxa! Pisou numa mina e perdeu. Respire fundo e volte com tudo!'; minesModal.style.display='flex'; if(box){ box.classList.remove('boom'); void box.offsetWidth; box.classList.add('boom'); } } } }
+startMines.addEventListener('click',()=>{ let bet = Math.max(1, Math.floor(Number(apostaMines.value)||0)); if(minesRunning) return; if(bet>saldo){minesStatus.textContent='Saldo insuficiente.'; return;} saldo -= bet; updateSaldo(); minesBet=bet; minesMult=1; revealed.clear(); minesMultEl.textContent='1.00x'; minesRound.textContent='Rodando'; startMines.disabled=true; cashMines.disabled=false; minesRunning=true; placeBombs(Math.max(1,Math.min(10,Math.floor(Number(minesCount.value)||5)))); renderEmptyGrid(); minesStatus.textContent='Rodada iniciada. Evite as minas e colete quando quiser.'; });
+cashMines.addEventListener('click',()=>{ if(!minesRunning) return; const ganho = +(minesBet*minesMult).toFixed(2); saldo += ganho; updateSaldo(); minesStatus.textContent='Coletou R$ '+ganho.toFixed(2)+' com multiplicador '+minesMult.toFixed(2)+'x.'; minesLast.textContent='Coleta: '+new Date().toLocaleTimeString(); endMines(true); });
+// Minas modal actions
+if(minesDoubleBtn){ minesDoubleBtn.addEventListener('click',()=>{ if(minesModal) minesModal.style.display='none'; setDouble(apostaMines); startMines.click(); }); }
+if(minesTry){ minesTry.addEventListener('click',()=>{ if(minesModal) minesModal.style.display='none'; apostaMines.value = Math.max(1, Math.floor(minesBet)); startMines.click(); }); }
+if(minesClose){ minesClose.addEventListener('click',()=>{ if(minesModal) minesModal.style.display='none'; }); }
+renderEmptyGrid();
+
+// Blackjack
+const apostaBj = document.getElementById('apostaBj'); const bjMin=document.getElementById('bjMin'); const bjMax=document.getElementById('bjMax'); const bjDouble=document.getElementById('bjDouble'); const bjStart=document.getElementById('bjStart'); const bjHit=document.getElementById('bjHit'); const bjStand=document.getElementById('bjStand'); const bjPlayer=document.getElementById('bjPlayer'); const bjDealer=document.getElementById('bjDealer'); const bjStatus=document.getElementById('bjStatus'); const bjLast=document.getElementById('bjLast'); const bjPlayerCardsEl=document.getElementById('bjPlayerCards'); const bjDealerCardsEl=document.getElementById('bjDealerCards'); if(apostaBj) attachBetControls(bjMin,bjMax,bjDouble,apostaBj);
+let bjRunning=false, bjBet=0, bjPlayerHand=[], bjDealerHand=[], bjDeck=[], bjRevealDealer=false;
+
+function bjMakeDeck(){ const suits=['♠','♥','♦','♣']; const ranks=[ 'A','2','3','4','5','6','7','8','9','10','J','Q','K' ]; const deck=[]; for(const s of suits){ for(const r of ranks){ const value = r==='A'?11:(['J','Q','K'].includes(r)?10:Number(r)); deck.push({rank:r,suit:s,value}); } } for(let i=deck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; } return deck; }
+function bjDrawCard(){ if(bjDeck.length===0){ bjDeck=bjMakeDeck(); } return bjDeck.pop(); }
+function bjTotal(hand){ let s=hand.reduce((a,c)=>a+c.value,0); let aces=hand.filter(c=>c.rank==='A').length; while(s>21 && aces>0){ s-=10; aces--; } return s; }
+function createCardEl(card, hidden=false){ const d=document.createElement('div'); d.className='bj-card deal'+(hidden?' back':'')+(!hidden?(' '+((card.suit==='♥'||card.suit==='♦')?'red':'black')):''); if(hidden){ d.innerHTML='<div class="suit">♣</div>'; return d; } const corner='<div class="corner">'+card.rank+' '+card.suit+'</div>'; const cornerB='<div class="corner bottom">'+card.rank+' '+card.suit+'</div>'; const center='<div class="suit">'+card.suit+'</div>'; d.innerHTML=corner+center+cornerB; return d; }
+function bjRenderHands(){ if(bjDealerCardsEl){ bjDealerCardsEl.innerHTML=''; if(!bjRevealDealer){ if(bjDealerHand[0]) bjDealerCardsEl.appendChild(createCardEl(bjDealerHand[0], false)); if(bjDealerHand.length>=2) bjDealerCardsEl.appendChild(createCardEl(bjDealerHand[1], true)); for(let i=2;i<bjDealerHand.length;i++){ bjDealerCardsEl.appendChild(createCardEl(bjDealerHand[i], true)); } } else { bjDealerHand.forEach(c=>bjDealerCardsEl.appendChild(createCardEl(c,false))); } }
+ if(bjPlayerCardsEl){ bjPlayerCardsEl.innerHTML=''; bjPlayerHand.forEach(c=>bjPlayerCardsEl.appendChild(createCardEl(c,false))); }
+ const tp=bjTotal(bjPlayerHand); const td=bjRevealDealer?bjTotal(bjDealerHand):bjDealerHand[0]?bjDealerHand[0].value:0;
+ bjPlayer.textContent='Você: '+tp; bjDealer.textContent = bjRevealDealer ? ('Dealer: '+bjTotal(bjDealerHand)) : ('Dealer: '+td+' , ?'); }
+
+if(bjStart){ bjStart.addEventListener('click',()=>{ if(bjRunning) return; const bet=Math.max(1, Math.floor(Number(apostaBj.value)||0)); if(bet>saldo){ bjStatus.textContent='Saldo insuficiente.'; return; } saldo-=bet; updateSaldo(); bjBet=bet; bjDeck=bjMakeDeck(); bjPlayerHand=[bjDrawCard(), bjDrawCard()]; bjDealerHand=[bjDrawCard(), bjDrawCard()]; bjRevealDealer=false; bjRunning=true; bjHit.disabled=false; bjStand.disabled=false; bjRenderHands(); bjStatus.textContent='Jogue: Hit ou Stand'; }); }
+if(bjHit){ bjHit.addEventListener('click',()=>{ if(!bjRunning) return; bjPlayerHand.push(bjDrawCard()); bjRenderHands(); const tp=bjTotal(bjPlayerHand); if(tp>21){ bjRunning=false; bjHit.disabled=true; bjStand.disabled=true; bjRevealDealer=true; bjRenderHands(); bjStatus.textContent='💥 Estourou '+tp+'. Perdeu R$ '+bjBet.toFixed(2); bjLast.textContent='Você '+tp+' vs Dealer '+bjTotal(bjDealerHand); } }); }
+if(bjStand){ bjStand.addEventListener('click',()=>{ if(!bjRunning) return; bjRunning=false; bjHit.disabled=true; bjStand.disabled=true; bjRevealDealer=true; while(bjTotal(bjDealerHand)<17){ bjDealerHand.push(bjDrawCard()); } bjRenderHands(); const tp=bjTotal(bjPlayerHand), td=bjTotal(bjDealerHand); let msg=''; let ganho=0; if(td>21 || tp>td){ ganho=bjBet*2; saldo+=ganho; updateSaldo(); msg='🎉 Você venceu! Ganhou R$ '+ganho.toFixed(2); } else if(tp===td){ saldo+=bjBet; updateSaldo(); msg='Empate. Aposta devolvida.'; } else { msg='Dealer venceu. Você perdeu R$ '+bjBet.toFixed(2); } bjStatus.textContent=msg; bjLast.textContent='Final: Você '+tp+' vs Dealer '+td; }); }
+
+// Bacará
+const apostaBac=document.getElementById('apostaBac'); const bacMin=document.getElementById('bacMin'); const bacMax=document.getElementById('bacMax'); const bacDouble=document.getElementById('bacDouble'); const bacChoice=document.getElementById('bacChoice'); const bacDeal=document.getElementById('bacDeal'); const bacView=document.getElementById('bacView'); const bacLast=document.getElementById('bacLast'); const bacPlayerCardsEl=document.getElementById('bacPlayerCards'); const bacBankerCardsEl=document.getElementById('bacBankerCards'); if(apostaBac) attachBetControls(bacMin,bacMax,bacDouble,apostaBac);
+let bacDeck=[];
+function bacMakeDeck(){ const suits=['♠','♥','♦','♣']; const ranks=[ 'A','2','3','4','5','6','7','8','9','10','J','Q','K' ]; const deck=[]; for(const s of suits){ for(const r of ranks){ const value = r==='A'?1:(['10','J','Q','K'].includes(r)?0:Number(r)); deck.push({rank:r,suit:s,value}); } } for(let i=deck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; } return deck; }
+function bacDrawCard(){ if(bacDeck.length===0){ bacDeck=bacMakeDeck(); } return bacDeck.pop(); }
+function bacTotal(hand){ const sum = hand.reduce((a,c)=>a+c.value,0); return sum%10; }
+function bacRenderHands(pHand,bHand){ if(bacPlayerCardsEl){ bacPlayerCardsEl.innerHTML=''; pHand.forEach(c=>bacPlayerCardsEl.appendChild(createCardEl(c,false))); } if(bacBankerCardsEl){ bacBankerCardsEl.innerHTML=''; bHand.forEach(c=>bacBankerCardsEl.appendChild(createCardEl(c,false))); } }
+if(bacDeal){ bacDeal.addEventListener('click',()=>{ const bet=Math.max(1, Math.floor(Number(apostaBac.value)||0)); if(bet>saldo){ bacLast.textContent='Saldo insuficiente.'; return;} saldo-=bet; updateSaldo(); bacDeck = bacMakeDeck(); const p=[bacDrawCard(), bacDrawCard()]; const b=[bacDrawCard(), bacDrawCard()]; bacRenderHands(p,b); const tp=bacTotal(p), tb=bacTotal(b); bacView.textContent='Player '+tp+' vs Banker '+tb; const winner= tp>tb?'player':(tb>tp?'banker':'tie'); let ganho=0; if(bacChoice.value==='player' && winner==='player'){ ganho= bet*2; } else if(bacChoice.value==='banker' && winner==='banker'){ ganho= bet*1.95; } else if(bacChoice.value==='tie' && winner==='tie'){ ganho= bet*8; } if(ganho>0){ saldo+=ganho; updateSaldo(); bacLast.textContent='🎉 '+(winner==='tie'?'Empate!':'Venceu '+winner)+'. Ganhou R$ '+ganho.toFixed(2); } else { bacLast.textContent='Saiu '+winner+'. Você perdeu R$ '+bet.toFixed(2); } }); }
+
+// Plinko
+const apostaPlinko=document.getElementById('apostaPlinko'); const plinkoMin=document.getElementById('plinkoMin'); const plinkoMax=document.getElementById('plinkoMax'); const plinkoDouble=document.getElementById('plinkoDouble'); const dropPlinko=document.getElementById('dropPlinko'); const plinkoCanvas=document.getElementById('plinkoCanvas'); const plinkoLast=document.getElementById('plinkoLast'); if(apostaPlinko) attachBetControls(plinkoMin,plinkoMax,plinkoDouble,apostaPlinko);
+function binColor(m){ if(m>=3) return '#2f8f5b'; if(m>=1.5) return '#2d6e4a'; if(m>=1) return '#30455e'; if(m>=0.75) return '#2c3b53'; return '#25324a'; }
+ function drawPlinkoBoard(ctx,W,H,multipliers){ ctx.clearRect(0,0,W,H); const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#0f1426'); bg.addColorStop(1,'#0b1020'); ctx.fillStyle=bg; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#243056'; ctx.lineWidth=2; ctx.strokeRect(6,6,W-12,H-12); const rows=8; const cols=9; const x0=20, y0=34; const xStep=(W-40)/8; const yStep=(H-100)/rows; // funnel
+  const cx=W/2; ctx.beginPath(); ctx.moveTo(cx-18, y0-16); ctx.lineTo(cx+18,y0-16); ctx.lineTo(cx, y0-2); ctx.closePath(); ctx.fillStyle='#243056'; ctx.fill(); // pegs
+   drawPlinkoPins(ctx,W,H);
+   // bins separator + labels
+  const baseY = H-38; ctx.beginPath(); ctx.moveTo(20,baseY); ctx.lineTo(W-20,baseY); ctx.strokeStyle='#243056'; ctx.stroke(); for(let c=0;c<cols;c++){ const x = x0 + c*xStep; ctx.beginPath(); ctx.moveTo(x,baseY); ctx.lineTo(x,baseY+12); ctx.stroke(); const m=multipliers[c]; ctx.fillStyle=binColor(m); ctx.fillRect(x-16,H-28,32,18); ctx.fillStyle='#e8ecf1'; ctx.font='12px Segoe UI'; ctx.textAlign='center'; ctx.fillText(m.toFixed(2)+'x', x, H-15); }
+ }
+ function drawPlinkoPins(ctx,W,H){ const rows=8; const cols=9; const x0=20, y0=34; const xStep=(W-40)/8; const yStep=(H-100)/rows; const yStepPin=yStep*1.12; for(let r=0;r<rows;r++){ const odd=r%2===1; const count = odd ? cols-1 : cols; for(let c=0;c<count;c++){ const x = x0 + c*xStep + (odd? xStep/2 : 0); const y = y0 + r*yStepPin + yStepPin/2; const g=ctx.createRadialGradient(x,y,0,x,y,4); g.addColorStop(0,'#cfd7e8'); g.addColorStop(1,'#9fb1c6'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,3.5,0,Math.PI*2); ctx.fill(); } } }
+ function drawBall(ctx,x,y){ ctx.fillStyle='#4ad66d'; ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2); ctx.fill(); }
+function runPlinko(){ const bet=Math.max(1, Math.floor(Number(apostaPlinko.value)||0)); if(bet>saldo){ plinkoLast.textContent='Saldo insuficiente.'; return; } saldo-=bet; updateSaldo();  const ctx=plinkoCanvas.getContext('2d'); const W=plinkoCanvas.width, H=plinkoCanvas.height; const multipliers=[0.5,0.75,1,1.5,3,1.5,1,0.75,0.5]; const rows=8, cols=9; const x0=20, y0=34; const xStep=(W-40)/8; const yStep=(H-100)/rows; const baseY=H-38; const rBall=6, rPin=3.5; const pins=[]; const yStepPin=yStep*1.12; for(let r=0;r<rows;r++){ const odd=r%2===1; const count=odd?cols-1:cols; for(let c=0;c<count;c++){ const px=x0 + c*xStep + (odd? xStep/2:0); const py=y0 + r*yStepPin + yStepPin/2; pins.push({x:px,y:py}); } } let x = x0 + 4*xStep; let y = y0 - rBall; let vx=0; const vy=0.5;  const maxVx=1.5; const kickPool=[0.142,0.014,0.012,0.066,0.073,0.074,0.19,0.071,0.155,0.189,0.092,0.033,0.127,0.08,0.16]; const roundKick = kickPool[Math.floor(Math.random()*kickPool.length)];  function frame(){ y += vy; x += vx; vx *= 0.98; if(x < x0){ x=x0; vx = Math.abs(vx); } if(x > x0 + 8*xStep){ x = x0 + 8*xStep; vx = -Math.abs(vx); } for(let i=0;i<pins.length;i++){ const p=pins[i]; const dx=x-p.x, dy=y-p.y; const dist=Math.sqrt(dx*dx+dy*dy); if(dist < rBall + rPin){ const side = Math.abs(dx) < 0.001 ? (Math.random() < 0.5 ? -1 : 1) : Math.sign(dx); const kick = roundKick; vx += side * kick; const overlap = (rBall + rPin) - dist; const nx = dx/(dist||1), ny = dy/(dist||1); x = p.x + nx*(rBall + rPin + 0.1); y = p.y + ny*(rBall + rPin + 0.1); break; } } if(vx>maxVx) vx=maxVx; else if(vx<-maxVx) vx=-maxVx; drawPlinkoBoard(ctx,W,H,multipliers); drawBall(ctx,x,y); ctx.fillStyle='#e8ecf1'; ctx.font='12px Segoe UI'; ctx.textAlign='left';  if(y >= baseY - rBall){ const finalPos=Math.max(0, Math.min(8, Math.round((x - x0)/xStep))); const mult=multipliers[finalPos]; const ganho= +(bet*mult).toFixed(2); if(ganho>0){ saldo+=ganho; updateSaldo(); }  plinkoLast.textContent='Caiu em '+mult.toFixed(2)+'x. '+(ganho>bet?'🎉 Ganhou R$ '+ganho.toFixed(2):'Recebeu R$ '+ganho.toFixed(2)+'.'); return; } requestAnimationFrame(frame); } requestAnimationFrame(frame); }
+if(dropPlinko){ dropPlinko.addEventListener('click', runPlinko); }
+
+// Tower
+const apostaTower=document.getElementById('apostaTower'); const towerMin=document.getElementById('towerMin'); const towerMax=document.getElementById('towerMax'); const towerDouble=document.getElementById('towerDouble'); const startTower=document.getElementById('startTower'); const cashTower=document.getElementById('cashTower'); const towerGrid=document.getElementById('towerGrid'); const towerStatus=document.getElementById('towerStatus'); const towerLast=document.getElementById('towerLast'); if(apostaTower) attachBetControls(towerMin,towerMax,towerDouble,apostaTower);
+let towerRunning=false, towerBet=0, towerMult=1, towerLevel=0, towerSafe=[];
+function buildTower(){ towerGrid.innerHTML=''; for(let r=0;r<5;r++){ for(let c=0;c<3;c++){ const d=document.createElement('div'); d.className='cell tower-cell'; d.dataset.row=r; d.dataset.col=c; d.addEventListener('click', onTowerClick); towerGrid.appendChild(d); } } }
+function setTowerActiveRow(){ const cells=Array.from(towerGrid.children); cells.forEach(el=>{ el.classList.toggle('active', Number(el.dataset.row)===towerLevel); }); }
+function startTowerRound(){ if(towerRunning) return; const bet=Math.max(1, Math.floor(Number(apostaTower.value)||0)); if(bet>saldo){ towerStatus.textContent='Saldo insuficiente.'; return;} saldo-=bet; updateSaldo(); towerBet=bet; towerMult=1; towerLevel=0; towerRunning=true; cashTower.disabled=false; startTower.disabled=true; towerStatus.textContent='Escolha uma célula segura em cada nível.'; towerSafe=Array.from({length:5},()=>Math.floor(Math.random()*3)); buildTower(); setTowerActiveRow(); }
+function onTowerClick(e){ if(!towerRunning) return; const r=Number(e.currentTarget.dataset.row); if(r!==towerLevel) return; const c=Number(e.currentTarget.dataset.col); if(c===towerSafe[r]){ e.currentTarget.classList.add('win'); towerMult=+(towerMult*1.5).toFixed(2); towerLevel++; towerStatus.textContent='Seguro! Multiplicador '+towerMult.toFixed(2)+'x.'; if(towerLevel>=5){ endTower(true); } else { setTowerActiveRow(); } } else { e.currentTarget.textContent='💣'; e.currentTarget.classList.add('bomb'); endTower(false); } }
+function endTower(win){ towerRunning=false; startTower.disabled=false; cashTower.disabled=true; Array.from(towerGrid.children).forEach(el=>el.classList.remove('active')); if(win){ const ganho=+(towerBet*towerMult).toFixed(2); saldo+=ganho; updateSaldo(); towerStatus.textContent='🎉 Completou a torre! Ganhou R$ '+ganho.toFixed(2); towerLast.textContent='Multiplicador final '+towerMult.toFixed(2)+'x.'; } else { towerStatus.textContent='💥 Errou nível '+(towerLevel+1)+' e perdeu R$ '+towerBet.toFixed(2); towerLast.textContent='Rodada '+new Date().toLocaleTimeString(); } }
+if(cashTower){ cashTower.addEventListener('click',()=>{ if(!towerRunning) return; const ganho=+(towerBet*towerMult).toFixed(2); saldo+=ganho; updateSaldo(); towerStatus.textContent='Coletou R$ '+ganho.toFixed(2)+' com '+towerMult.toFixed(2)+'x.'; towerLast.textContent='Coleta '+new Date().toLocaleTimeString(); endTower(true); }); }
+if(startTower){ startTower.addEventListener('click', startTowerRound); buildTower(); }
+
+// init
+updateSaldo();
+</script>
+</body>
+</html>
